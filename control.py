@@ -1,6 +1,6 @@
+import csv
 from pathlib import Path
 import json
-from textwrap import indent
 
 DATA_DIR = Path(__file__).resolve().parent / "data"
 DATA_DIR.mkdir(exist_ok=True)
@@ -24,3 +24,38 @@ def create_lead(lead_dict):
     leads.append(lead_dict)
     DB_PATH.write_text(json.dumps(leads, ensure_ascii=False, indent=2), encoding="utf-8")
     # criar arquivo sem ler todos
+
+# BUSCAR LEADS
+def read_leads_search(query):
+    """
+    Função que recebe uma query (busca de nome ou email) no leads.json
+    e retorna uma lista com os resultados
+    """
+    leads = read_leads()
+    results = []
+
+    for i, lead in enumerate(leads):
+        txt_lead = f"{lead["name"]} {lead["email"]}".lower()
+        # print(txt_lead)
+
+        if query.lower() in txt_lead:
+            results.append((i, lead))
+
+    return results
+
+def export_csv():
+    """
+    Essa função exporta todos os leads para um arquivo csv e retorna o caminho deste arquivo
+    """
+    path_csv = DATA_DIR / "leads.csv"
+    leads = read_leads()
+
+    try:
+        with path_csv.open("w", newline="", encoding="utf-8") as file_csv:
+            writer = csv.DictWriter(file_csv, leads[0].keys())
+            writer.writeheader()
+            for row_dict in leads:
+                writer.writerow(row_dict)
+        return path_csv
+    except PermissionError:
+        return None
